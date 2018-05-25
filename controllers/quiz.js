@@ -1,6 +1,7 @@
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const {models} = require("../models");
+const op = Sequelize.Op;
 
 const paginate = require('../helpers/paginate').paginate;
 
@@ -224,4 +225,74 @@ exports.check = (req, res, next) => {
         result,
         answer
     });
+};
+
+// GET /quizzes/:quizId/random_play
+exports.randomplay = (req, res, next) => {
+
+    req.session.randomPlay = req.session.randomPlay || [];
+    var score = req.session.randomPlay.lenght || 0;
+    const whereOpt = {id: {[Sequelize.Op.notIn] : req.session.randomPlay}} ;
+
+    models.quiz.count({where:whereOpt})
+        .then(count => {
+
+            return models.quiz.findAll({
+                where: whereOpt,
+                offset: Math.floor(Math.random()*count),
+                limit:1
+            })
+                .then(quizzes => {
+                    return quizzes[0];
+                })
+        })
+        .then(quiz => {
+            if(quiz === undefined) {
+
+                req.session.randomPlay = [];
+                res.render('quizzes/random_nomore', {
+                    score: score
+                });
+
+            } else {
+
+                res.render('quizzes/random_play', {
+                    quiz: quiz,
+                    score: score
+                });
+            }
+        })
+        .catch(error => next(error));
+};
+
+// GET /quizzes/:quizId/randomcheck
+exports.randomcheck = (req, res, next) => {
+
+    const {quiz, query} = req;
+
+    req.session.randomPlay = req.session.randomPlay || [];
+
+
+    var answer = query.answer || "";
+    var result = answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim();
+
+    if (result) {
+        if (req.session.randomPlay.indexOf(req.quiz.id) === -1) {
+            req.session.randomPlay.push(req.quiz.id);
+        }
+    }
+
+    var score = req.session.randomPlay.length;
+
+    if (!result) {
+        req.session.randomPlay = [];
+    }
+
+    res.render('quizzes/random_result', {
+        answer,
+        result,
+        score
+    });
+
+
 };
