@@ -279,5 +279,6 @@ exports.randomcheck = (req,res,next) => {
 
     let score = req.session.randomPlay.length;
     
+    
     res.render('quizzes/random_result', {result,score,answer});
 };
