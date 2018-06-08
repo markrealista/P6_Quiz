@@ -227,6 +227,7 @@ exports.check = (req, res, next) => {
     });
 };
 
+
 // GET + /quizzes/randomplay. 
 exports.randomplay = (req, res, next) => {
 
@@ -257,6 +258,7 @@ exports.randomplay = (req, res, next) => {
         next(error);
     });
 };
+
 
 //GET + /quizzes/randomcheck/:quizId?answer=respuesta
 exports.randomcheck = (req,res,next) => {
