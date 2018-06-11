@@ -160,26 +160,30 @@ exports.check = (req, res, next) => {
 exports.randomplay = (req, res, next) => {
 
     req.session.randomPlay = req.session.randomPlay || [];
-    const whereOp = {id: {[op.notIn]: req.session.randomPlay}}; 
+    const whereOp = {id: {[op.notIn]: req.session.randomPlay}}; // Ids que no están en session.randomPlay
 
     models.quiz.count({where:whereOp})
     .then(count => {
 
         let ofset =  Math.floor(count*Math.random());
-        return models.quiz.findAll({where: whereOp, offset:ofset, limit: 1})
+        return models.quiz.findAll({ // Devuelve un quiz aleatorio que no este en session.randomPlay
+            where: whereOp, 
+            offset:ofset, 
+            limit: 1
+        }) 
         .then(quizzes => {
                 return quizzes[0];
         });
 
     })
-    .then(quiz =>{
-        if(quiz == undefined){  
+    .then(quiz =>{ // de quizzes[0]
+        if(quiz === undefined){ // Si el quiz no existe o no es valido
+            let score = req.session.randomPlay.length; // Preguntas acertadas
+            req.session.randomPlay = []; // Vaciamos el array
+            res.render('quizzes/random_nomore',{score: score}); // Renderizamos la vista random_nomore pasando el nº de preguntas acertadas
+        } else { // Si el quiz es valido seguimos                     
             let score = req.session.randomPlay.length;
-            req.session.randomPlay = []; 
-            res.render('quizzes/random_nomore',{score: score});
-        } else {                     
-            let score = req.session.randomPlay.length;
-            res.render('quizzes/random_play',{quiz: quiz, score: score});
+            res.render('quizzes/random_play',{quiz: quiz, score: score}); // Renderiza la vista que nos dice el nº de acierto que llevamos
         }
     })
     .catch(error => {
@@ -191,21 +195,23 @@ exports.randomplay = (req, res, next) => {
 //GET + /quizzes/randomcheck/:quizId?answer=respuesta
 exports.randomcheck = (req,res,next) => {
     
-    const {quiz, query} = req;
-    const answer = query.answer || "";
+    const {quiz, query} = req; 
+        // const quiz = req.quiz;
+        // const query = req. query;
+    const answer = query.answer || ""; // Sacamos de la query la respuesta que hemos escrito o vacio si no hemos escrito nada 
     const result = answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim();
 
     req.session.randomPlay = req.session.randomPlay || [];
 
-    if (result) {
+    if (result) { // Si result vale 1 guardamos el id del quiz en el array de preguntas acertadas
         if (req.session.randomPlay.indexOf(req.quiz.id) === -1) {
             req.session.randomPlay.push(req.quiz.id);
+            let score = req.session.randomPlay.length;
+            res.render('quizzes/random_result', {result,score,answer});
         }
-    } else {
-        req.session.randomPlay = [];
+    } else { // si no vaciamos el array y terminamos el juego
+        let score = req.session.randomPlay.length;
+        req.session.randomPlay = []; 
+        res.render('quizzes/random_result', {result,score,answer});
     }
-
-    let score = req.session.randomPlay.length;
-    
-    res.render('quizzes/random_result', {result,score,answer});
 };
