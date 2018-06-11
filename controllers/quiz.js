@@ -1,7 +1,6 @@
 const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 const {models} = require("../models");
-const op = Sequelize.Op;
-
 
 const paginate = require('../helpers/paginate').paginate;
 
@@ -232,7 +231,7 @@ exports.check = (req, res, next) => {
 exports.randomplay = (req, res, next) => {
 
     req.session.randomPlay = req.session.randomPlay || [];
-    const whereOp = {id: {[op.notIn]: req.session.randomPlay}}; // Ids que no están en session.randomPlay
+    const whereOp = {id: {[Op.notIn]: req.session.randomPlay}}; // Ids que no están en session.randomPlay
 
     models.quiz.count({where:whereOp})
     .then(count => {
