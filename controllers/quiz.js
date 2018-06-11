@@ -1,6 +1,7 @@
 const Sequelize = require("sequelize");
-const op = Sequelize.Op;
 const {models} = require("../models");
+const op = Sequelize.Op;
+
 
 const paginate = require('../helpers/paginate').paginate;
 
