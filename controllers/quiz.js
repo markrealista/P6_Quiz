@@ -195,7 +195,7 @@ exports.randomplay = (req, res, next) => {
 //GET + /quizzes/randomcheck/:quizId?answer=respuesta
 exports.randomcheck = (req,res,next) => {
     
-    const {quiz, query} = req; 
+    const {quiz, query} = req; // Esto equivale a: 
         // const quiz = req.quiz;
         // const query = req. query;
     const answer = query.answer || ""; // Sacamos de la query la respuesta que hemos escrito o vacio si no hemos escrito nada 
